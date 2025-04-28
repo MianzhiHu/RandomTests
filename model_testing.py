@@ -12,7 +12,7 @@ data = pd.read_csv('./Data/WSLL1.csv')
 # ====================================================================
 # Convert letters to numbers
 data['SGTBinChoice'] = data['SGTBinChoice'].map({'a': 0, 'b': 1, 'c': 2, 'd': 3})
-data_dict =dict_generator(data, task='IGT_SGT')
+data_dict = dict_generator(data, task='IGT_SGT')
 
 test_data = data[data['ID'] == 1]
 test_dict = dict_generator(test_data, task='IGT_SGT')

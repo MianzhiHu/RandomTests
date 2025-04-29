@@ -4,7 +4,8 @@ import pingouin as pg
 import matplotlib.pyplot as plt
 import seaborn as sns
 import ast
-from utils.ComputationalModeling import ComputationalModels, dict_generator, parameter_extractor
+from utils.ComputationalModeling import (ComputationalModels, dict_generator, parameter_extractor,
+                                         moving_window_model_fitting)
 from utils.DualProcess import DualProcessModel
 
 # ====================================================================
@@ -35,6 +36,7 @@ data2_dict = dict_generator(data2, task='IGT_SGT')
 dual = DualProcessModel(num_trials=100, task='IGT_SGT', default_EV=0.0)
 delta = ComputationalModels('delta', task='IGT_SGT', condition='Both', num_trials=100)
 decay = ComputationalModels('decay', task='IGT_SGT', condition='Both', num_trials=100)
+window_size = 10
 
 if __name__ == '__main__':
     # # ====================================================================
@@ -42,43 +44,76 @@ if __name__ == '__main__':
     # # ====================================================================
     # dual_1 = dual.fit(data1_dict, num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
     #                      arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency', num_t=2)
+    dual_original_1 = dual.fit(data1_dict, num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                               arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency', num_t=1)
     # delta_1 = delta.fit(data1_dict, num_iterations=100)
     # decay_1 = decay.fit(data1_dict, num_iterations=100)
-    dual_minmax_1 = dual.fit(data1_dict, num_iterations=200, weight_Gau='softmax', weight_Dir='softmax',
-                                arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax', num_t=1)
+    # dual_minmax_1 = dual.fit(data1_dict, num_iterations=200, weight_Gau='softmax', weight_Dir='softmax',
+    #                          arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax', num_t=1)
+    dual_sensitivity_1 = dual.fit(data1_dict, model='DP_Uncertainty_Sensitivity', num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                                arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax',
+                                num_t=1)
 
     # dual_2 = dual.fit(data2_dict, num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
     #                      arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency', num_t=2)
+    dual_original_2 = dual.fit(data2_dict, num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                               arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency', num_t=1)
     # delta_2 = delta.fit(data2_dict, num_iterations=100)
     # decay_2 = decay.fit(data2_dict, num_iterations=100)
-    dual_minmax_2 = dual.fit(data2_dict, num_iterations=200, weight_Gau='softmax', weight_Dir='softmax',
-                             arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax', num_t=1)
+    # dual_minmax_2 = dual.fit(data2_dict, num_iterations=200, weight_Gau='softmax', weight_Dir='softmax',
+    #                          arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax', num_t=1)
+    dual_sensitivity_2 = dual.fit(data2_dict, model='DP_Uncertainty_Sensitivity', num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                                arbi_option='Entropy', Dir_fun='Linear_Recency', Gau_fun='Naive_Recency_MinMax',
+                                num_t=1)
 
     # # Save the results
     # dual_1.to_csv('./Data/OAYA/OAYA_pilot/dual.csv', index=False)
     # delta_1.to_csv('./Data/OAYA/OAYA_pilot/delta.csv', index=False)
     # decay_1.to_csv('./Data/OAYA/OAYA_pilot/decay.csv', index=False)
-    dual_minmax_1.to_csv('./Data/OAYA/OAYA_pilot/dual_minmax.csv', index=False)
+    # dual_minmax_1.to_csv('./Data/OAYA/OAYA_pilot/dual_minmax.csv', index=False)
+    dual_sensitivity_1.to_csv('./Data/OAYA/OAYA_pilot/dual_sensitivity.csv', index=False)
+    dual_original_1.to_csv('./Data/OAYA/OAYA_pilot/dual_original.csv', index=False)
 
     # dual_2.to_csv('./Data/OAYA/OAYA_2022/dual.csv', index=False)
     # delta_2.to_csv('./Data/OAYA/OAYA_2022/delta.csv', index=False)
     # decay_2.to_csv('./Data/OAYA/OAYA_2022/decay.csv', index=False)
-    dual_minmax_2.to_csv('./Data/OAYA/OAYA_2022/dual_minmax.csv', index=False)
+    # dual_minmax_2.to_csv('./Data/OAYA/OAYA_2022/dual_minmax.csv', index=False)
+    dual_sensitivity_2.to_csv('./Data/OAYA/OAYA_2022/dual_sensitivity.csv', index=False)
+    dual_original_2.to_csv('./Data/OAYA/OAYA_2022/dual_original.csv', index=False)
+
+    # Now, fit to the moving window model
+    dual_moving_window_1 = moving_window_model_fitting(data1, dual, task='IGT_SGT', window_size=window_size,
+                                                       num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                                                       arbi_option='Entropy', Dir_fun='Linear_Recency',
+                                                       Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='subjID')
+    dual_moving_window_2 = moving_window_model_fitting(data2, dual, task='IGT_SGT', window_size=window_size,
+                                                       num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+                                                       arbi_option='Entropy', Dir_fun='Linear_Recency',
+                                                       Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='Subnum')
+
+    dual_moving_window_1.to_csv('./Data/OAYA/OAYA_pilot/dual_moving_window.csv', index=False)
+    dual_moving_window_2.to_csv('./Data/OAYA/OAYA_2022/dual_moving_window.csv', index=False)
 
     # ====================================================================
     # Read the results
     # ====================================================================
     dual_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/dual.csv')
+    dual_original_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/dual_original.csv')
     delta_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/delta.csv')
     decay_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/decay.csv')
     dual_minmax_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/dual_minmax.csv')
+    dual_sensitivity_1 = pd.read_csv('./Data/OAYA/OAYA_pilot/dual_sensitivity.csv')
 
     dual_2 = pd.read_csv('./Data/OAYA/OAYA_2022/dual.csv')
+    dual_original_2 = pd.read_csv('./Data/OAYA/OAYA_2022/dual_original.csv')
     delta_2 = pd.read_csv('./Data/OAYA/OAYA_2022/delta.csv')
     decay_2 = pd.read_csv('./Data/OAYA/OAYA_2022/decay.csv')
     dual_minmax_2 = pd.read_csv('./Data/OAYA/OAYA_2022/dual_minmax.csv')
+    dual_sensitivity_2 = pd.read_csv('./Data/OAYA/OAYA_2022/dual_sensitivity.csv')
 
     print(f'Dual Process Model-1: {dual_1["BIC"].mean()}; Dual Process Model-2: {dual_2["BIC"].mean()}')
+    print(f'Dual Process Model Original-1: {dual_original_1["BIC"].mean()}; Dual Process Model Original-2: {dual_original_2["BIC"].mean()}')
+    print(f'Dual Process Model Sensitivity-1: {dual_sensitivity_1["BIC"].mean()}; Dual Process Model Sensitivity-2: {dual_sensitivity_2["BIC"].mean()}')
     print(f'Dual Process Model MinMax-1: {dual_minmax_1["BIC"].mean()}; Dual Process Model MinMax-2: {dual_minmax_2["BIC"].mean()}')
     print(f'Delta Model: {delta_1["BIC"].mean()}; Delta Model-2: {delta_2["BIC"].mean()}')
     print(f'Decay Model: {decay_1["BIC"].mean()}; Decay Model-2: {decay_2["BIC"].mean()}')
@@ -99,7 +134,6 @@ if __name__ == '__main__':
     best_weight_1['best_weight'] = best_weight_1['best_weight'].apply(ast.literal_eval)
     best_weight_1['best_obj_weight'] = best_weight_1['best_obj_weight'].apply(ast.literal_eval)
     best_weight_1 = best_weight_1.explode(['best_weight', 'best_obj_weight'])
-
 
     # Rename the columns
     data1 = data1.rename(columns={'subjID': 'participant_id'})
@@ -128,9 +162,14 @@ if __name__ == '__main__':
     var = 't'
     t_test = pg.ttest(df[df['AgeGroup'] == 'OA'][var],
                       df[df['AgeGroup'] == 'YA'][var], paired=False, alternative='two-sided', correction=True)
-    print(f'{var}: {df[df['AgeGroup'] == 'OA'][var].mean()}')
-    print(f'{var}: {df[df['AgeGroup'] == 'YA'][var].mean()}')
-    print(t_test)
+    print(f'OA {var}: {df[df['AgeGroup'] == 'OA'][var].mean()}')
+    print(f'YA: {var}: {df[df['AgeGroup'] == 'YA'][var].mean()}')
+    print(f't = {t_test["T"].iloc[0]}, p = {t_test["p-val"].iloc[0]}')
+    # print(f'total OA: {len(df[df['AgeGroup'] == 'OA'])}')
+    # print(f'total YA: {len(df[df['AgeGroup'] == 'YA'])}')
+
+    # Correlation
+    corr = pg.corr(df['t'], df['alpha'], method='pearson')
 
     # =====================================================
     # Plot the data

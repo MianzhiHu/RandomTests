@@ -81,18 +81,18 @@ if __name__ == '__main__':
     dual_sensitivity_2.to_csv('./Data/OAYA/OAYA_2022/dual_sensitivity.csv', index=False)
     dual_original_2.to_csv('./Data/OAYA/OAYA_2022/dual_original.csv', index=False)
 
-    # Now, fit to the moving window model
-    dual_moving_window_1 = moving_window_model_fitting(data1, dual, task='IGT_SGT', window_size=window_size,
-                                                       num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
-                                                       arbi_option='Entropy', Dir_fun='Linear_Recency',
-                                                       Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='subjID')
-    dual_moving_window_2 = moving_window_model_fitting(data2, dual, task='IGT_SGT', window_size=window_size,
-                                                       num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
-                                                       arbi_option='Entropy', Dir_fun='Linear_Recency',
-                                                       Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='Subnum')
-
-    dual_moving_window_1.to_csv('./Data/OAYA/OAYA_pilot/dual_moving_window.csv', index=False)
-    dual_moving_window_2.to_csv('./Data/OAYA/OAYA_2022/dual_moving_window.csv', index=False)
+    # # Now, fit to the moving window model
+    # dual_moving_window_1 = moving_window_model_fitting(data1, dual, task='IGT_SGT', window_size=window_size,
+    #                                                    num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+    #                                                    arbi_option='Entropy', Dir_fun='Linear_Recency',
+    #                                                    Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='subjID')
+    # dual_moving_window_2 = moving_window_model_fitting(data2, dual, task='IGT_SGT', window_size=window_size,
+    #                                                    num_iterations=100, weight_Gau='softmax', weight_Dir='softmax',
+    #                                                    arbi_option='Entropy', Dir_fun='Linear_Recency',
+    #                                                    Gau_fun='Naive_Recency_MinMax', num_t=1, id_col='Subnum')
+    #
+    # dual_moving_window_1.to_csv('./Data/OAYA/OAYA_pilot/dual_moving_window.csv', index=False)
+    # dual_moving_window_2.to_csv('./Data/OAYA/OAYA_2022/dual_moving_window.csv', index=False)
 
     # ====================================================================
     # Read the results
@@ -120,11 +120,13 @@ if __name__ == '__main__':
 
     # Extract the parameters
     dual_1 = parameter_extractor(dual_1, param_name=['t', 'alpha', 'subj_weight', 't2'])
+    dual_original_1 = parameter_extractor(dual_original_1, param_name=['t', 'alpha', 'subj_weight'])
     dual_minmax_1 = parameter_extractor(dual_minmax_1, param_name=['t', 'alpha', 'subj_weight'])
     delta_1 = parameter_extractor(delta_1, param_name=['t', 'alpha'])
     decay_1 = parameter_extractor(decay_1, param_name=['t', 'alpha'])
 
     dual_2 = parameter_extractor(dual_2, param_name=['t', 'alpha', 'subj_weight', 't2'])
+    dual_original_2 = parameter_extractor(dual_original_2, param_name=['t', 'alpha', 'subj_weight'])
     dual_minmax_2 = parameter_extractor(dual_minmax_2, param_name=['t', 'alpha', 'subj_weight'])
     delta_2 = parameter_extractor(delta_2, param_name=['t', 'alpha'])
     decay_2 = parameter_extractor(decay_2, param_name=['t', 'alpha'])
@@ -143,23 +145,27 @@ if __name__ == '__main__':
     data1_unique = data1.groupby('participant_id')['AgeGroup'].first().reset_index()
     dual_1 = pd.merge(dual_1, data1_unique, on='participant_id', how='left')
     dual_minmax_1 = pd.merge(dual_minmax_1, data1_unique, on='participant_id', how='left')
+    dual_original_1 = pd.merge(dual_original_1, data1_unique, on='participant_id', how='left')
 
     data2_unique = data2.groupby('participant_id')['AgeGroup'].first().reset_index()
     dual_2 = pd.merge(dual_2, data2_unique, on='participant_id', how='left')
     dual_minmax_2 = pd.merge(dual_minmax_2, data2_unique, on='participant_id', how='left')
+    dual_original_2 = pd.merge(dual_original_2, data2_unique, on='participant_id', how='left')
 
     # Combine the data
     dual_all = pd.concat([dual_1, dual_2], ignore_index=True)
     dual_all['participant_id'] = dual_all.index + 1
     dual_minmax_all = pd.concat([dual_minmax_1, dual_minmax_2], ignore_index=True)
     dual_minmax_all['participant_id'] = dual_minmax_all.index + 1
+    dual_original_all = pd.concat([dual_original_1, dual_original_2], ignore_index=True)
+    dual_original_all['participant_id'] = dual_original_all.index + 1
 
     # =====================================================================
     # T-test
     # =====================================================================
     # Perform an independent t-test
-    df = dual_minmax_all
-    var = 't'
+    df = dual_original_all
+    var = 'alpha'
     t_test = pg.ttest(df[df['AgeGroup'] == 'OA'][var],
                       df[df['AgeGroup'] == 'YA'][var], paired=False, alternative='two-sided', correction=True)
     print(f'OA {var}: {df[df['AgeGroup'] == 'OA'][var].mean()}')

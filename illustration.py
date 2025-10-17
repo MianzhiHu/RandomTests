@@ -8,6 +8,26 @@ from sympy.stats.rv import probability
 from statsmodels.graphics.factorplots import interaction_plot
 
 
+def grade_reporter(grades):
+    max_grade = max(grades)
+    min_grade = min(grades)
+    range_grade = max_grade - min_grade
+    mean_grade = np.mean(grades)
+    median_grade = np.median(grades)
+    mode_grade = grades[grades.count(grades)]
+    std_grade = np.std(grades)
+    print(f'max: {max_grade}, min: {min_grade}, range: {range_grade}, mean: {mean_grade}, median: {median_grade}, '
+          f'mode: {mode_grade}, std: {std_grade}')
+
+    # plot the data
+    sns.set(style='white')
+    sns.histplot(grades, kde=True, bins=10)
+    plt.title('Grades')
+    plt.xlabel('Grades')
+    plt.ylabel('Frequency')
+    plt.savefig('./Figures/grades_distribution.png', dpi=600)
+    plt.show()
+
 # # =============================================================================
 # # draw a random probability
 # # =============================================================================
@@ -144,6 +164,13 @@ from statsmodels.graphics.factorplots import interaction_plot
 # mean_diff_paired = np.array(wa1) - np.array(wa2)
 # std_paired = np.std(mean_diff_paired, ddof=1)
 # t_stat_paired = mean_diff / (std_paired / np.sqrt(len(wa1)))
+
+# ===============================================================================
+# 2025 Fall WA1 grade
+# ===============================================================================
+wa1_2025_fall = [36, 35, 44, 38, 40, 32, 42, 30, 41, 41, 47, 39, 23, 34, 47]
+wa1_2025_fall = [x * 2 for x in wa1_2025_fall]
+grade_reporter(wa1_2025_fall)
 
 # # =============================================================================
 # # ANOVA illustration
